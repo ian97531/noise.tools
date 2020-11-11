@@ -1,0 +1,159 @@
+.Home {
+  padding-bottom: 100px;
+}
+
+.title {
+  font-family: "Kranky", cursive;
+  font-weight: normal;
+  font-size: 56px;
+  margin-top: 30px;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  font-weight: normal;
+  font-size: 18px;
+  font-weight: 300;
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.canvas {
+  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.2), 0px 1px 6px 2px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.controlRow {
+  margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+}
+
+.buttonRow {
+  display: flex;
+  padding-left: 1px;
+}
+
+.button {
+  margin-right: 10px;
+  border-radius: 5px;
+  border: 1px solid #444;
+  padding: 9px;
+  min-width: 80px;
+  cursor: pointer;
+  background-color: #ccc;
+  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.2), 0px 1px 6px 2px rgba(0, 0, 0, 0.1);
+  outline: none;
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+}
+
+.button:active {
+  box-shadow: none;
+}
+
+.label {
+  margin-bottom: 20px;
+}
+
+.inputRange {
+  -webkit-appearance: none;
+  width: 100%;
+  padding-right: 3px;
+  background: transparent;
+}
+
+.inputRange::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  border: 1px solid #444;
+  height: 28px;
+  width: 16px;
+  border-radius: 5px;
+  background: #ccc;
+  cursor: pointer;
+  margin-top: -11px; /* You need to specify a margin in Chrome, but in Firefox and IE it is automatic */
+  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.2), 0px 1px 6px 2px rgba(0, 0, 0, 0.1); /* Add cool effects to your sliders! */
+}
+
+.inputRange::-moz-range-thumb,
+.inputRange::-ms-thumb {
+  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.2), 0px 1px 6px 2px rgba(0, 0, 0, 0.1);
+  border: 1px solid #444;
+  height: 36px;
+  width: 16px;
+  border-radius: 3px;
+  background: #ccc;
+  cursor: pointer;
+}
+
+.inputRange:focus {
+  outline: none; /* Removes the blue border. You should probably do some kind of focus styling for accessibility reasons though. */
+}
+
+.inputRange::-ms-track {
+  width: 100%;
+  padding-right: 3px;
+  cursor: pointer;
+
+  /* Hides the slider so custom styles can be added */
+  background: transparent;
+  border-color: transparent;
+  color: transparent;
+}
+
+.inputRange::-webkit-slider-runnable-track {
+  width: 100%;
+  padding-right: 3px;
+  height: 8.4px;
+  cursor: pointer;
+  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.2), 0px 1px 6px 2px rgba(0, 0, 0, 0.1);
+  background: #718792;
+  border-radius: 3px;
+  border: 0.2px solid #444;
+}
+
+.inputRange:focus::-webkit-slider-runnable-track {
+  background: #367ebd;
+}
+
+.inputRange::-moz-range-track {
+  width: 100%;
+  padding-right: 3px;
+  height: 8.4px;
+  cursor: pointer;
+  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.2), 0px 1px 6px 2px rgba(0, 0, 0, 0.1);
+  background: #718792;
+  border-radius: 3px;
+  border: 0.2px solid #444;
+}
+
+.inputRange::-ms-track {
+  width: 100%;
+  padding-right: 3px;
+  height: 8.4px;
+  cursor: pointer;
+  background: transparent;
+  border-color: transparent;
+  border-width: 16px 0;
+  color: transparent;
+}
+.inputRange::-ms-fill-lower {
+  background: #2a6495;
+  border: 0.2px solid #444;
+  border-radius: 2.6px;
+  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.2), 0px 1px 6px 2px rgba(0, 0, 0, 0.1);
+}
+.inputRange:focus::-ms-fill-lower {
+  background: #718792;
+}
+.inputRange::-ms-fill-upper {
+  background: #718792;
+  border: 0.2px solid #444;
+  border-radius: 2.6px;
+  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.2), 0px 1px 6px 2px rgba(0, 0, 0, 0.1);
+}
+.inputRange:focus::-ms-fill-upper {
+  background: #367ebd;
+}
