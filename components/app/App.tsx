@@ -8,9 +8,9 @@ import {
   WorkerMessage,
   createResetMessage,
   createPlayMessage,
-  createUpdateNoiseMessage,
-  createUpdateDarkenMessage,
-  createUpdateLightenMessage,
+  createUpdateV1Message,
+  createUpdateV2Message,
+  createUpdateAMessage,
   createPauseMessage,
 } from "utils/noiseWorkerApi";
 
@@ -25,44 +25,44 @@ export interface ComponentProps extends React.AllHTMLAttributes<HTMLElement> {
 
 export default function Home(props: ComponentProps) {
   const { className, width, height, ...elementProps } = props;
-  const [noise, setNoise] = useState<number>(2);
-  const [lighten, setLighten] = useState<number>(0.05);
-  const [darken, setDarken] = useState<number>(0.2);
+  const [v1, setV1] = useState<number>(12.9898);
+  const [v2, setV2] = useState<number>(78.233);
+  const [a, setA] = useState<number>(43758.5453123);
   const [play, setPlay] = useState<boolean>(true);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const workerRef = useRef<CanvasWorker>();
 
-  const updateNoise = useCallback(
+  const updateV1 = useCallback(
     (evt: React.ChangeEvent<HTMLInputElement>) => {
-      setNoise(evt.target.valueAsNumber);
+      setV1(evt.target.valueAsNumber);
       if (workerRef.current) {
         workerRef.current.postMessage(
-          createUpdateNoiseMessage(evt.target.valueAsNumber)
+          createUpdateV1Message(evt.target.valueAsNumber)
         );
       }
     },
     []
   );
 
-  const updateDarken = useCallback(
+  const updateV2 = useCallback(
     (evt: React.ChangeEvent<HTMLInputElement>) => {
-      setDarken(evt.target.valueAsNumber);
+      setV2(evt.target.valueAsNumber);
       if (workerRef.current) {
         workerRef.current.postMessage(
-          createUpdateDarkenMessage(evt.target.valueAsNumber)
+          createUpdateV2Message(evt.target.valueAsNumber)
         );
       }
     },
     []
   );
 
-  const updateLighten = useCallback(
+  const updateA = useCallback(
     (evt: React.ChangeEvent<HTMLInputElement>) => {
-      setLighten(evt.target.valueAsNumber);
+      setA(evt.target.valueAsNumber);
       if (workerRef.current) {
         workerRef.current.postMessage(
-          createUpdateLightenMessage(evt.target.valueAsNumber)
+          createUpdateAMessage(evt.target.valueAsNumber)
         );
       }
     },
@@ -94,7 +94,7 @@ export default function Home(props: ComponentProps) {
 
     listener.listen(WorkerMessage.Ready, () => {
       worker.postMessage(
-        createInitMessage(offline, width, height, noise, lighten, darken),
+        createInitMessage(offline, width, height, v1, v2, a),
         [offline]
       );
       worker.postMessage(createResetMessage());
@@ -124,39 +124,39 @@ export default function Home(props: ComponentProps) {
       />
       <div>
         <div className={styles.controlRow}>
-          <label className={styles.label}>Randomness: {noise}</label>
+          <label className={styles.label}>V1: {v1}</label>
           <input
             className={styles.inputRange}
             type="range"
             min="0"
-            max="10"
+            max="1000"
             step="0.1"
-            onChange={updateNoise}
-            value={noise}
+            onChange={updateV1}
+            value={v1}
           />
         </div>
         <div className={styles.controlRow}>
-          <label className={styles.label}>Absorption: {darken}</label>
+          <label className={styles.label}>V2: {v2}</label>
           <input
             className={styles.inputRange}
             type="range"
             min="0"
-            max="1"
-            step="0.01"
-            onChange={updateDarken}
-            value={darken}
+            max="1000"
+            step="0.1"
+            onChange={updateV2}
+            value={v2}
           />
         </div>
         <div className={styles.controlRow}>
-          <label className={styles.label}>Evaporation: {lighten}</label>
+          <label className={styles.label}>A: {a}</label>
           <input
             className={styles.inputRange}
             type="range"
             min="0"
-            max="1"
-            step="0.01"
-            onChange={updateLighten}
-            value={lighten}
+            max="1000000"
+            step="10"
+            onChange={updateA}
+            value={a}
           />
         </div>
         <div className={styles.buttonRow}>

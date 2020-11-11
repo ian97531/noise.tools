@@ -5,9 +5,9 @@ export enum HostMessage {
   Play = "play",
   Pause = "pause",
   Reset = "reset",
-  UpdateNoise = "updateNoise",
-  UpdateDarken = "updateDarken",
-  UpdateLighten = "updateLighten",
+  UpdateV1 = "updateV1",
+  UpdateV2 = "updateV2",
+  UpdateA = "updateA",
 }
 
 export enum WorkerMessage {
@@ -24,21 +24,21 @@ interface InitMessage extends Message<HostMessage.Init> {
   canvas: OffscreenCanvas;
   height: number;
   width: number;
-  noise: number;
-  lighten: number;
-  darken: number;
+  v1: number;
+  v2: number;
+  a: number;
 }
 
-interface UpdateNoiseMessage extends Message<HostMessage.UpdateNoise> {
-  noise: number;
+interface UpdateV1Message extends Message<HostMessage.UpdateV1> {
+  v1: number;
 }
 
-interface UpdateDarkenMessage extends Message<HostMessage.UpdateDarken> {
-  darken: number;
+interface UpdateV2Message extends Message<HostMessage.UpdateV2> {
+  v2: number;
 }
 
-interface UpdateLightenMessage extends Message<HostMessage.UpdateLighten> {
-  lighten: number;
+interface UpdateAMessage extends Message<HostMessage.UpdateA> {
+  a: number;
 }
 
 type MessageType = {
@@ -46,9 +46,9 @@ type MessageType = {
   [HostMessage.Pause]: Message<HostMessage.Pause>;
   [HostMessage.Play]: Message<HostMessage.Play>;
   [HostMessage.Reset]: Message<HostMessage.Reset>;
-  [HostMessage.UpdateNoise]: UpdateNoiseMessage;
-  [HostMessage.UpdateDarken]: UpdateDarkenMessage;
-  [HostMessage.UpdateLighten]: UpdateLightenMessage;
+  [HostMessage.UpdateV1]: UpdateV1Message;
+  [HostMessage.UpdateV2]: UpdateV2Message;
+  [HostMessage.UpdateA]: UpdateAMessage;
   [WorkerMessage.Ready]: Message<WorkerMessage.Ready>;
 };
 
@@ -102,17 +102,17 @@ export const createInitMessage = (
   canvas: OffscreenCanvas,
   width: number,
   height: number,
-  noise: number,
-  lighten: number,
-  darken: number
+  v1: number,
+  v2: number,
+  a: number
 ): InitMessage => ({
   name: HostMessage.Init,
   canvas,
   height,
   width,
-  noise,
-  lighten,
-  darken,
+  v1,
+  v2,
+  a,
 });
 
 export const createPlayMessage = (): Message<HostMessage.Play> => ({
@@ -127,25 +127,19 @@ export const createResetMessage = (): Message<HostMessage.Reset> => ({
   name: HostMessage.Reset,
 });
 
-export const createUpdateNoiseMessage = (
-  noise: number
-): UpdateNoiseMessage => ({
-  name: HostMessage.UpdateNoise,
-  noise,
+export const createUpdateV1Message = (v1: number): UpdateV1Message => ({
+  name: HostMessage.UpdateV1,
+  v1,
 });
 
-export const createUpdateDarkenMessage = (
-  darken: number
-): UpdateDarkenMessage => ({
-  name: HostMessage.UpdateDarken,
-  darken,
+export const createUpdateV2Message = (v2: number): UpdateV2Message => ({
+  name: HostMessage.UpdateV2,
+  v2,
 });
 
-export const createUpdateLightenMessage = (
-  lighten: number
-): UpdateLightenMessage => ({
-  name: HostMessage.UpdateLighten,
-  lighten,
+export const createUpdateAMessage = (a: number): UpdateAMessage => ({
+  name: HostMessage.UpdateA,
+  a,
 });
 
 export const createReadyMessage = (): Message<WorkerMessage.Ready> => ({

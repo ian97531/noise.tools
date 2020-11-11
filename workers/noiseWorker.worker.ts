@@ -1,32 +1,22 @@
 /// <reference lib="WebWorker" />
 export const worker: DedicatedWorkerGlobalScope = self as any;
 
-import SimplexNoise from "simplex-noise";
-
 import {
   createListener,
   createReadyMessage,
   HostMessage,
 } from "utils/noiseWorkerApi";
 
-import {
-  Color,
-  setAll,
-  setRowColumn,
-  getNeighbors,
-  getRowColumn,
-  addRowColumn,
-  addArray,
-  Opacity,
-  printArray,
-} from "utils/canvas";
+import { Color, Offset, Opacity, getIndexForRowColumn } from "utils/canvas";
+import { randomNoise2Dto1D } from "utils/noise";
+import { vec2 } from "utils/vectors";
 
 const listener = createListener();
 worker.addEventListener("message", listener.onMessage);
 
-let noiseWeight = 2;
-let darkenMultiplier = 0.2;
-let lightenMultiplier = 0.05;
+let v1 = 12.9898;
+let v2 = 78.233;
+let a = 43758.5453123;
 
 let canvas: OffscreenCanvas;
 let context: OffscreenCanvasRenderingContext2D;
@@ -35,47 +25,22 @@ let width: number;
 let height: number;
 let play: boolean;
 
-const simplex = new SimplexNoise("abe");
-
 const computeNextFrame = (time: number) => {
-  const accumulator = new Uint8ClampedArray(image.data.length);
-  setAll(accumulator, width, height, 128, 128);
+  const data = image.data;
+
   for (let row = 0; row < height; row++) {
     for (let column = 0; column < width; column++) {
-      const selfValue = getRowColumn(image.data, width, row, column);
-      const neighbors = getNeighbors(image.data, width, height, row, column);
-      const noise = neighbors.length
-        ? simplex.noise2D(
-            neighbors[Math.round(Math.random() * 200) % neighbors.length].value,
-            time
-          ) * noiseWeight
-        : 0;
-      neighbors.forEach((neighbor) => {
-        const diffAvg = selfValue - (neighbor.value + selfValue) / 2;
-        const neighborDiff =
-          diffAvg > 0
-            ? diffAvg * lightenMultiplier
-            : diffAvg * darkenMultiplier;
-        const selfDiff =
-          -1 * diffAvg > 0
-            ? -1 * diffAvg * lightenMultiplier
-            : -1 * diffAvg * darkenMultiplier;
-
-        if (diffAvg) {
-          addRowColumn(
-            accumulator,
-            width,
-            neighbor.row,
-            neighbor.column,
-            neighborDiff + noise,
-            0
-          );
-          addRowColumn(accumulator, width, row, column, selfDiff + noise, 0);
-        }
-      });
+      const xy = vec2(row, column);
+      const v = vec2(v1, v2);
+      const random = randomNoise2Dto1D(xy, v, a) * 255;
+      const index = getIndexForRowColumn(width, row, column);
+      data[index + Offset.Red] = random;
+      data[index + Offset.Green] = random;
+      data[index + Offset.Blue] = random;
+      data[index + Offset.Opacity] = 255;
     }
   }
-  addArray(image.data, accumulator, -128);
+
   context.putImageData(image, 0, 0);
 };
 
@@ -96,21 +61,19 @@ listener.listen(HostMessage.Play, (evt) => {
   requestAnimationFrame(nextFrame);
 });
 
-listener.listen(HostMessage.UpdateNoise, (evt) => {
-  noiseWeight = evt.data.noise;
+listener.listen(HostMessage.UpdateV1, (evt) => {
+  v1 = evt.data.v1;
 });
 
-listener.listen(HostMessage.UpdateLighten, (evt) => {
-  lightenMultiplier = evt.data.lighten;
+listener.listen(HostMessage.UpdateV2, (evt) => {
+  v2 = evt.data.v2;
 });
 
-listener.listen(HostMessage.UpdateDarken, (evt) => {
-  darkenMultiplier = evt.data.darken;
+listener.listen(HostMessage.UpdateA, (evt) => {
+  a = evt.data.a;
 });
 
 listener.listen(HostMessage.Reset, (evt) => {
-  setAll(image.data, width, height, Color.White);
-  setRowColumn(image.data, width, height / 2, width / 2, Color.Black);
   context.putImageData(image, 0, 0);
 });
 
@@ -118,9 +81,9 @@ listener.listen(HostMessage.Init, (evt) => {
   canvas = evt.data.canvas;
   width = evt.data.width;
   height = evt.data.height;
-  noiseWeight = evt.data.noise;
-  lightenMultiplier = evt.data.lighten;
-  darkenMultiplier = evt.data.darken;
+  v1 = evt.data.v1;
+  v2 = evt.data.v2;
+  a = evt.data.a;
 
   context = canvas.getContext("2d");
   image = context.getImageData(0, 0, width, height);

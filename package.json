@@ -16,7 +16,6 @@
     "react-ga": "^3.2.1",
     "react-spring": "^8.0.27",
     "sass": "^1.29.0",
-    "simplex-noise": "^2.4.0",
     "worker-loader": "^3.0.5"
   },
   "devDependencies": {
