@@ -1,11 +1,13 @@
 export enum Color {
   White = 255,
-  Black = 1,
+  Grey = 128,
+  Gray = 128,
+  Black = 0,
 }
 
 export enum Opacity {
   Opaque = 255,
-  Transparent = 1,
+  Transparent = 0,
 }
 
 export enum Offset {

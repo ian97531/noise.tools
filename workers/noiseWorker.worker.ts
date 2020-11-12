@@ -8,8 +8,9 @@ import {
 } from "utils/noiseWorkerApi";
 
 import { Color, Offset, Opacity, getIndexForRowColumn } from "utils/canvas";
-import { randomNoise2Dto1D } from "utils/noise";
-import { vec2 } from "utils/vectors";
+
+import { randomNoise2Dto1D, valueNoise2Dto1D } from "utils/noise";
+import { vec2, vec3 } from "utils/vectors";
 
 const listener = createListener();
 worker.addEventListener("message", listener.onMessage);
@@ -31,8 +32,7 @@ const computeNextFrame = (time: number) => {
   for (let row = 0; row < height; row++) {
     for (let column = 0; column < width; column++) {
       const xy = vec2(row, column);
-      const v = vec2(v1, v2);
-      const random = randomNoise2Dto1D(xy, v, a) * 255;
+      const random = valueNoise2Dto1D(xy) * 255;
       const index = getIndexForRowColumn(width, row, column);
       data[index + Offset.Red] = random;
       data[index + Offset.Green] = random;
@@ -40,7 +40,7 @@ const computeNextFrame = (time: number) => {
       data[index + Offset.Opacity] = 255;
     }
   }
-
+  console.log(data);
   context.putImageData(image, 0, 0);
 };
 
@@ -53,9 +53,9 @@ listener.listen(HostMessage.Play, (evt) => {
 
   const nextFrame = (time: number) => {
     computeNextFrame(time);
-    if (play) {
-      requestAnimationFrame(nextFrame);
-    }
+    // if (play) {
+    //   requestAnimationFrame(nextFrame);
+    // }
   };
 
   requestAnimationFrame(nextFrame);
