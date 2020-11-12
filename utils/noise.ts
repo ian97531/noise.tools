@@ -10,6 +10,7 @@ import {
   subtract,
   mix,
   Pos,
+  cubic,
 } from "./vectors";
 
 const DEFAULT_V2 = vec2(12.9898, 78.233);
@@ -27,7 +28,10 @@ export const randomNoise2Dto1D = (
   return fraction(Math.sin(dotProduct(xy, v2)) * a);
 };
 
-export const valueNoise2Dto1D = (xy: Vec2): number => {
+export const valueNoise2Dto1D = (
+  xy: Vec2,
+  interpolationFn: (x: Vec2) => Vec2 = cubic
+): number => {
   const i: Vec2 = floor(xy);
   const f: Vec2 = fraction(xy);
 
@@ -37,12 +41,11 @@ export const valueNoise2Dto1D = (xy: Vec2): number => {
   const c: number = randomNoise2Dto1D(add(i, vec2(0, 1)));
   const d: number = randomNoise2Dto1D(add(i, vec2(1, 1)));
 
+  // interpolation
+  const u: Vec2 = interpolationFn(f);
+
   // Smooth interpolation of of the current point within the 2D tile
   // based on the values of the four corners.
-
-  // Cubic Hermine Curve (smooth step)
-  const u: Vec2 = multiply(f, f, subtract(3, multiply(2, f)));
-
   return (
     mix(a, b, u[Pos.x]) +
     (c - a) * u[Pos.y] * (1 - u[Pos.x]) +

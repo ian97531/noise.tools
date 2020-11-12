@@ -18,6 +18,18 @@ export type Vec4 = readonly [x: number, y: number, z: number, w: number];
 
 export type AnyVec = Vec2 | Vec3 | Vec4;
 
+export type MathFunction =
+  | ((...operands: number[]) => number)
+  | ((...operands: (Vec2 | number)[]) => Vec2)
+  | ((...operands: (Vec3 | number)[]) => Vec2)
+  | ((...operands: (Vec4 | number)[]) => Vec4);
+
+export type InterpolationFunction =
+  | ((x: number) => number)
+  | ((x: Vec2) => Vec2)
+  | ((x: Vec3) => Vec3)
+  | ((x: Vec4) => Vec4);
+
 export const vec2 = (n1: number, n2?: number): Vec2 => {
   return n2 === undefined ? [n1, n1] : [n1, n2];
 };
@@ -80,54 +92,130 @@ export function isScalar(value: AnyVec | number): value is number {
   return typeof value === "number";
 }
 
-export function addVectorsAtIndex(
-  vectors: readonly (AnyVec | number)[],
+function addVectorsAtIndex(
+  operands: readonly (AnyVec | number)[],
   index: number
 ): number {
-  return vectors.reduce<number>((sum: number, curr) => {
+  return operands.reduce<number>((result: number, curr) => {
     if (typeof curr === "number") {
-      return sum + curr;
+      return result + curr;
     } else {
-      return sum + curr[index];
+      return index < curr.length ? result + curr[index] : result;
     }
   }, 0);
 }
 
-export function subVectorsAtIndex(
-  vectors: readonly (AnyVec | number)[],
+function subVectorsAtIndex(
+  operands: readonly (AnyVec | number)[],
   index: number
 ): number {
-  return vectors.reduce<number>((sum: number, curr) => {
-    if (typeof curr === "number") {
-      return sum - curr;
-    } else {
-      return sum - curr[index];
+  if (operands.length > 1) {
+    return operands.reduce<number>((result: number, curr, i) => {
+      if (i === 0) {
+        if (typeof curr === "number") {
+          return curr;
+        }
+
+        return index < curr.length ? curr[index] : 0;
+      }
+
+      if (typeof curr === "number") {
+        return result - curr;
+      }
+
+      return index < curr.length ? result - curr[index] : result;
+    }, 0);
+  }
+
+  if (operands.length === 1) {
+    if (typeof operands[0] === "number") {
+      return operands[0];
     }
-  }, 0);
+
+    return index < operands[0].length ? operands[0][index] : 0;
+  }
+
+  return 0;
 }
 
-export function multiplyVectorsAtIndex(
-  vectors: readonly (AnyVec | number)[],
+function multiplyVectorsAtIndex(
+  operands: readonly (AnyVec | number)[],
   index: number
 ): number {
-  return vectors.reduce<number>((sum: number, curr) => {
-    if (typeof curr === "number") {
-      return sum * curr;
-    } else {
-      return sum * curr[index];
+  if (operands.length > 1) {
+    return operands.reduce<number>((result: number, curr, i) => {
+      if (i === 0) {
+        if (typeof curr === "number") {
+          return curr;
+        }
+
+        return index < curr.length ? curr[index] : 0;
+      }
+
+      if (typeof curr === "number") {
+        return result * curr;
+      }
+
+      return index < curr.length ? result * curr[index] : 0;
+    }, 0);
+  }
+
+  if (operands.length === 1) {
+    if (typeof operands[0] === "number") {
+      return operands[0];
     }
-  }, 0);
+
+    return index < operands[0].length ? operands[0][index] : 0;
+  }
+
+  return 0;
 }
 
-export function add(...vectors: readonly (Vec2 | number)[]): Vec2;
-export function add(...vectors: readonly (Vec3 | number)[]): Vec3;
-export function add(...vectors: readonly (Vec4 | number)[]): Vec4;
-export function add(...vectors: readonly (AnyVec | number)[]): AnyVec {
-  const sizeVec = vectors.find((vector) => typeof vector !== "number");
-  if (isScalarArray(vectors)) {
-    vectors.reduce((sum, curr) => sum + curr);
+function divideVectorsAtIndex(
+  operands: readonly (AnyVec | number)[],
+  index: number
+): number {
+  if (operands.length > 1) {
+    return operands.reduce<number>((result: number, curr, i) => {
+      if (i === 0) {
+        if (typeof curr === "number") {
+          return curr;
+        }
+
+        return index < curr.length ? curr[index] : 0;
+      }
+
+      if (typeof curr === "number") {
+        return result / curr;
+      }
+
+      return index < curr.length ? result / curr[index] : 0;
+    }, 0);
+  }
+
+  if (operands.length === 1) {
+    if (typeof operands[0] === "number") {
+      return operands[0];
+    }
+
+    return index < operands[0].length ? operands[0][index] : 0;
+  }
+
+  return 0;
+}
+
+export function add(...operands: readonly number[]): number;
+export function add(...operands: readonly (Vec2 | number)[]): Vec2;
+export function add(...operands: readonly (Vec3 | number)[]): Vec3;
+export function add(...operands: readonly (Vec4 | number)[]): Vec4;
+export function add(
+  ...operands: readonly (AnyVec | number)[]
+): AnyVec | number {
+  const sizeVec = operands.find((vector) => typeof vector !== "number");
+  if (isScalarArray(operands)) {
+    return addVectorsAtIndex(operands, 0);
   } else {
-    const sizeVec = (vectors.find(
+    const sizeVec = (operands.find(
       (vector) => typeof vector !== "number"
     ) as unknown) as AnyVec;
     const size = sizeVec.length;
@@ -135,37 +223,40 @@ export function add(...vectors: readonly (AnyVec | number)[]): AnyVec {
     switch (size) {
       case 2:
         return vec2(
-          addVectorsAtIndex(vectors, 0),
-          addVectorsAtIndex(vectors, 1)
+          addVectorsAtIndex(operands, 0),
+          addVectorsAtIndex(operands, 1)
         );
 
       case 3:
         return vec3(
-          addVectorsAtIndex(vectors, 0),
-          addVectorsAtIndex(vectors, 1),
-          addVectorsAtIndex(vectors, 2)
+          addVectorsAtIndex(operands, 0),
+          addVectorsAtIndex(operands, 1),
+          addVectorsAtIndex(operands, 2)
         );
 
       case 4:
         return vec4(
-          addVectorsAtIndex(vectors, 0),
-          addVectorsAtIndex(vectors, 1),
-          addVectorsAtIndex(vectors, 2),
-          addVectorsAtIndex(vectors, 3)
+          addVectorsAtIndex(operands, 0),
+          addVectorsAtIndex(operands, 1),
+          addVectorsAtIndex(operands, 2),
+          addVectorsAtIndex(operands, 3)
         );
     }
   }
 }
 
-export function subtract(...vectors: readonly (Vec2 | number)[]): Vec2;
-export function subtract(...vectors: readonly (Vec3 | number)[]): Vec3;
-export function subtract(...vectors: readonly (Vec4 | number)[]): Vec4;
-export function subtract(...vectors: readonly (AnyVec | number)[]): AnyVec {
-  const sizeVec = vectors.find((vector) => typeof vector !== "number");
-  if (isScalarArray(vectors)) {
-    vectors.reduce((sum, curr) => sum - curr);
+export function subtract(...operands: readonly number[]): number;
+export function subtract(...operands: readonly (Vec2 | number)[]): Vec2;
+export function subtract(...operands: readonly (Vec3 | number)[]): Vec3;
+export function subtract(...operands: readonly (Vec4 | number)[]): Vec4;
+export function subtract(
+  ...operands: readonly (AnyVec | number)[]
+): AnyVec | number {
+  const sizeVec = operands.find((vector) => typeof vector !== "number");
+  if (isScalarArray(operands)) {
+    return subVectorsAtIndex(operands, 0);
   } else {
-    const sizeVec = (vectors.find(
+    const sizeVec = (operands.find(
       (vector) => typeof vector !== "number"
     ) as unknown) as AnyVec;
     const size = sizeVec.length;
@@ -173,37 +264,40 @@ export function subtract(...vectors: readonly (AnyVec | number)[]): AnyVec {
     switch (size) {
       case 2:
         return vec2(
-          multiplyVectorsAtIndex(vectors, 0),
-          multiplyVectorsAtIndex(vectors, 1)
+          subVectorsAtIndex(operands, 0),
+          subVectorsAtIndex(operands, 1)
         );
 
       case 3:
         return vec3(
-          multiplyVectorsAtIndex(vectors, 0),
-          multiplyVectorsAtIndex(vectors, 1),
-          multiplyVectorsAtIndex(vectors, 2)
+          subVectorsAtIndex(operands, 0),
+          subVectorsAtIndex(operands, 1),
+          subVectorsAtIndex(operands, 2)
         );
 
       case 4:
         return vec4(
-          multiplyVectorsAtIndex(vectors, 0),
-          multiplyVectorsAtIndex(vectors, 1),
-          multiplyVectorsAtIndex(vectors, 2),
-          multiplyVectorsAtIndex(vectors, 3)
+          subVectorsAtIndex(operands, 0),
+          subVectorsAtIndex(operands, 1),
+          subVectorsAtIndex(operands, 2),
+          subVectorsAtIndex(operands, 3)
         );
     }
   }
 }
 
-export function multiply(...vectors: readonly (Vec2 | number)[]): Vec2;
-export function multiply(...vectors: readonly (Vec3 | number)[]): Vec3;
-export function multiply(...vectors: readonly (Vec4 | number)[]): Vec4;
-export function multiply(...vectors: readonly (AnyVec | number)[]): AnyVec {
-  const sizeVec = vectors.find((vector) => typeof vector !== "number");
-  if (isScalarArray(vectors)) {
-    vectors.reduce((sum, curr) => sum * curr);
+export function multiply(...operands: readonly number[]): number;
+export function multiply(...operands: readonly (Vec2 | number)[]): Vec2;
+export function multiply(...operands: readonly (Vec3 | number)[]): Vec3;
+export function multiply(...operands: readonly (Vec4 | number)[]): Vec4;
+export function multiply(
+  ...operands: readonly (AnyVec | number)[]
+): AnyVec | number {
+  const sizeVec = operands.find((vector) => typeof vector !== "number");
+  if (isScalarArray(operands)) {
+    return multiplyVectorsAtIndex(operands, 0);
   } else {
-    const sizeVec = (vectors.find(
+    const sizeVec = (operands.find(
       (vector) => typeof vector !== "number"
     ) as unknown) as AnyVec;
     const size = sizeVec.length;
@@ -211,23 +305,64 @@ export function multiply(...vectors: readonly (AnyVec | number)[]): AnyVec {
     switch (size) {
       case 2:
         return vec2(
-          multiplyVectorsAtIndex(vectors, 0),
-          multiplyVectorsAtIndex(vectors, 1)
+          multiplyVectorsAtIndex(operands, 0),
+          multiplyVectorsAtIndex(operands, 1)
         );
 
       case 3:
         return vec3(
-          multiplyVectorsAtIndex(vectors, 0),
-          multiplyVectorsAtIndex(vectors, 1),
-          multiplyVectorsAtIndex(vectors, 2)
+          multiplyVectorsAtIndex(operands, 0),
+          multiplyVectorsAtIndex(operands, 1),
+          multiplyVectorsAtIndex(operands, 2)
         );
 
       case 4:
         return vec4(
-          multiplyVectorsAtIndex(vectors, 0),
-          multiplyVectorsAtIndex(vectors, 1),
-          multiplyVectorsAtIndex(vectors, 2),
-          multiplyVectorsAtIndex(vectors, 3)
+          multiplyVectorsAtIndex(operands, 0),
+          multiplyVectorsAtIndex(operands, 1),
+          multiplyVectorsAtIndex(operands, 2),
+          multiplyVectorsAtIndex(operands, 3)
+        );
+    }
+  }
+}
+
+export function divide(...operands: readonly number[]): number;
+export function divide(...operands: readonly (Vec2 | number)[]): Vec2;
+export function divide(...operands: readonly (Vec3 | number)[]): Vec3;
+export function divide(...operands: readonly (Vec4 | number)[]): Vec4;
+export function divide(
+  ...operands: readonly (AnyVec | number)[]
+): AnyVec | number {
+  const sizeVec = operands.find((vector) => typeof vector !== "number");
+  if (isScalarArray(operands)) {
+    return divideVectorsAtIndex(operands, 0);
+  } else {
+    const sizeVec = (operands.find(
+      (vector) => typeof vector !== "number"
+    ) as unknown) as AnyVec;
+    const size = sizeVec.length;
+
+    switch (size) {
+      case 2:
+        return vec2(
+          divideVectorsAtIndex(operands, 0),
+          divideVectorsAtIndex(operands, 1)
+        );
+
+      case 3:
+        return vec3(
+          divideVectorsAtIndex(operands, 0),
+          divideVectorsAtIndex(operands, 1),
+          divideVectorsAtIndex(operands, 2)
+        );
+
+      case 4:
+        return vec4(
+          divideVectorsAtIndex(operands, 0),
+          divideVectorsAtIndex(operands, 1),
+          divideVectorsAtIndex(operands, 2),
+          divideVectorsAtIndex(operands, 3)
         );
     }
   }
@@ -284,5 +419,69 @@ export function mix(
 
   if (isScalar(x) && isScalar(y)) {
     return add(multiply(x, 1 - a), multiply(y, a));
+  }
+}
+
+export function cubic(x: number): number;
+export function cubic(x: Vec2): Vec2;
+export function cubic(x: Vec3): Vec3;
+export function cubic(x: Vec4): Vec4;
+export function cubic(x: AnyVec | number): AnyVec | number {
+  if (isVec2(x)) {
+    return multiply(x, x, subtract(3, multiply(2, x)));
+  }
+
+  if (isVec3(x)) {
+    return multiply(x, x, subtract(3, multiply(2, x)));
+  }
+
+  if (isVec4(x)) {
+    return multiply(x, x, subtract(3, multiply(2, x)));
+  }
+
+  if (isScalar(x)) {
+    return multiply(x, x, subtract(3, multiply(2, x)));
+  }
+}
+
+export function quintic(x: number): number;
+export function quintic(x: Vec2): Vec2;
+export function quintic(x: Vec3): Vec3;
+export function quintic(x: Vec4): Vec4;
+export function quintic(x: AnyVec | number): AnyVec | number {
+  if (isVec2(x)) {
+    return multiply(
+      x,
+      x,
+      x,
+      add(multiply(x, subtract(multiply(x, 6), 15)), 10)
+    );
+  }
+
+  if (isVec3(x)) {
+    return multiply(
+      x,
+      x,
+      x,
+      add(multiply(x, subtract(multiply(x, 6), 15)), 10)
+    );
+  }
+
+  if (isVec4(x)) {
+    return multiply(
+      x,
+      x,
+      x,
+      add(multiply(x, subtract(multiply(x, 6), 15)), 10)
+    );
+  }
+
+  if (isScalar(x)) {
+    return multiply(
+      x,
+      x,
+      x,
+      add(multiply(x, subtract(multiply(x, 6), 15)), 10)
+    );
   }
 }

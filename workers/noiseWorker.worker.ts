@@ -10,7 +10,7 @@ import {
 import { Color, Offset, Opacity, getIndexForRowColumn } from "utils/canvas";
 
 import { randomNoise2Dto1D, valueNoise2Dto1D } from "utils/noise";
-import { vec2, vec3 } from "utils/vectors";
+import { vec2, multiply, divide } from "utils/vectors";
 
 const listener = createListener();
 worker.addEventListener("message", listener.onMessage);
@@ -28,10 +28,10 @@ let play: boolean;
 
 const computeNextFrame = (time: number) => {
   const data = image.data;
-
+  const res = vec2(width, height);
   for (let row = 0; row < height; row++) {
     for (let column = 0; column < width; column++) {
-      const xy = vec2(row, column);
+      const xy = multiply(divide(vec2(row, column), res), 10);
       const random = valueNoise2Dto1D(xy) * 255;
       const index = getIndexForRowColumn(width, row, column);
       data[index + Offset.Red] = random;
@@ -40,7 +40,6 @@ const computeNextFrame = (time: number) => {
       data[index + Offset.Opacity] = 255;
     }
   }
-  console.log(data);
   context.putImageData(image, 0, 0);
 };
 
