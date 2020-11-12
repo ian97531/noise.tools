@@ -9,7 +9,11 @@ import {
 
 import { Color, Offset, Opacity, getIndexForRowColumn } from "utils/canvas";
 
-import { randomNoise2Dto1D, valueNoise2Dto1D } from "utils/noise";
+import {
+  randomNoise2Dto1D,
+  valueNoise2Dto1D,
+  gradientNoise2Dto1D,
+} from "utils/noise";
 import { vec2, multiply, divide } from "utils/vectors";
 
 const listener = createListener();
@@ -32,7 +36,7 @@ const computeNextFrame = (time: number) => {
   for (let row = 0; row < height; row++) {
     for (let column = 0; column < width; column++) {
       const xy = multiply(divide(vec2(row, column), res), 10);
-      const random = valueNoise2Dto1D(xy) * 255;
+      const random = (gradientNoise2Dto1D(xy) * 0.5 + 0.5) * 255;
       const index = getIndexForRowColumn(width, row, column);
       data[index + Offset.Red] = random;
       data[index + Offset.Green] = random;
