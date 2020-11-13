@@ -131,7 +131,7 @@ function vecMathAtIndex(
     return operands.reduce<number>((result: number, curr, i) => {
       if (i === 0) {
         if (typeof curr === "number") {
-          return curr;
+          return operatorFn(curr);
         }
 
         if (index >= curr.length) {
@@ -140,7 +140,7 @@ function vecMathAtIndex(
           );
         }
 
-        return curr[index];
+        return operatorFn(curr[index]);
       }
 
       if (typeof curr === "number") {
@@ -216,6 +216,11 @@ const fractionOp: OperatorFunction = (op1) => op1 - Math.floor(op1);
 const cubicOp: OperatorFunction = (op1) => op1 * op1 * (3 - 2 * op1);
 const quinticOp: OperatorFunction = (op1) =>
   op1 * op1 * op1 * (op1 * (op1 * 6 - 15) + 10);
+const maxOp: OperatorFunction = (op1, op2 = -Infinity) =>
+  op1 > op2 ? op1 : op2;
+const minOp: OperatorFunction = (op1, op2 = Infinity) =>
+  op1 < op2 ? op1 : op2;
+const absOp: OperatorFunction = (op1) => Math.abs(op1);
 
 // The remaining functions provide common math operations that will work on a mixed
 // array of a single vector type and scalar values and return a result in the vector
@@ -319,6 +324,58 @@ export function divide(
 
   if (isVec4orScalarArray(operands)) {
     return vec4Math(divideOp, operands);
+  }
+
+  throw new Error("Invalid or inconsistent vector sizes provided.");
+}
+
+export function max(...operands: readonly number[]): number;
+export function max(...operands: readonly (Vec2 | number)[]): Vec2;
+export function max(...operands: readonly (Vec3 | number)[]): Vec3;
+export function max(...operands: readonly (Vec4 | number)[]): Vec4;
+export function max(
+  ...operands: readonly (AnyVec | number)[]
+): AnyVec | number {
+  if (isScalarArray(operands)) {
+    return vecMathAtIndex(maxOp, operands, 0);
+  }
+
+  if (isVec2orScalarArray(operands)) {
+    return vec2Math(maxOp, operands);
+  }
+
+  if (isVec3orScalarArray(operands)) {
+    return vec3Math(maxOp, operands);
+  }
+
+  if (isVec4orScalarArray(operands)) {
+    return vec4Math(maxOp, operands);
+  }
+
+  throw new Error("Invalid or inconsistent vector sizes provided.");
+}
+
+export function min(...operands: readonly number[]): number;
+export function min(...operands: readonly (Vec2 | number)[]): Vec2;
+export function min(...operands: readonly (Vec3 | number)[]): Vec3;
+export function min(...operands: readonly (Vec4 | number)[]): Vec4;
+export function min(
+  ...operands: readonly (AnyVec | number)[]
+): AnyVec | number {
+  if (isScalarArray(operands)) {
+    return vecMathAtIndex(minOp, operands, 0);
+  }
+
+  if (isVec2orScalarArray(operands)) {
+    return vec2Math(minOp, operands);
+  }
+
+  if (isVec3orScalarArray(operands)) {
+    return vec3Math(minOp, operands);
+  }
+
+  if (isVec4orScalarArray(operands)) {
+    return vec4Math(minOp, operands);
   }
 
   throw new Error("Invalid or inconsistent vector sizes provided.");
@@ -463,6 +520,30 @@ export function quintic(operand: AnyVec | number): AnyVec | number {
 
   if (isVec4(operand)) {
     return vec4Math(quinticOp, [operand]);
+  }
+
+  throw new Error("Invalid vector size provided.");
+}
+
+export function abs(operand: number): number;
+export function abs(operand: Vec2): Vec2;
+export function abs(operand: Vec3): Vec3;
+export function abs(operand: Vec4): Vec4;
+export function abs(operand: AnyVec | number): AnyVec | number {
+  if (isScalar(operand)) {
+    return vecMathAtIndex(absOp, [operand], 0);
+  }
+
+  if (isVec2(operand)) {
+    return vec2Math(absOp, [operand]);
+  }
+
+  if (isVec3(operand)) {
+    return vec3Math(absOp, [operand]);
+  }
+
+  if (isVec4(operand)) {
+    return vec4Math(absOp, [operand]);
   }
 
   throw new Error("Invalid vector size provided.");
