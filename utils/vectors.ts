@@ -40,11 +40,7 @@ export type MathFunction =
 // that will take a number or vector and return the interpolated value. If a vector
 // is provided, that same vector type will be returned. If a scalar is provided, a
 // scalar value will be returned.
-export type InterpolationFunction =
-  | ((x: number) => number)
-  | ((x: Vec2) => Vec2)
-  | ((x: Vec3) => Vec3)
-  | ((x: Vec4) => Vec4);
+export type InterpolationFn<T extends AnyVec | number> = (x: T) => T;
 
 // Functions for creating vectors.
 export const vec2 = (n1: number, n2: number = n1): Vec2 => {
@@ -549,6 +545,62 @@ export function abs(operand: AnyVec | number): AnyVec | number {
   throw new Error("Invalid vector size provided.");
 }
 
+export function clamp(val: number, minVal: number, maxVal: number): number;
+export function clamp(
+  val: Vec2,
+  minVal: Vec2 | number,
+  maxVal: Vec2 | number
+): Vec2;
+export function clamp(
+  val: Vec3,
+  minVal: Vec3 | number,
+  maxVal: Vec3 | number
+): Vec3;
+export function clamp(
+  val: Vec4,
+  minVal: Vec4 | number,
+  maxVal: Vec4 | number
+): Vec4;
+export function clamp(
+  val: AnyVec | number,
+  minVal: AnyVec | number,
+  maxVal: AnyVec | number
+): AnyVec | number {
+  if (isVec2(val)) {
+    const minVal2 = isScalar(minVal)
+      ? vec2(minVal)
+      : vec2(minVal[0], minVal[1]);
+    const maxVal2 = isScalar(maxVal)
+      ? vec2(maxVal)
+      : vec2(maxVal[0], maxVal[1]);
+    return max(min(val, maxVal2), minVal2);
+  }
+
+  if (isVec3(val)) {
+    const minVal3 = isScalar(minVal)
+      ? vec3(minVal)
+      : vec3(minVal[0], minVal[1], minVal[2]);
+    const maxVal3 = isScalar(maxVal)
+      ? vec3(maxVal)
+      : vec3(maxVal[0], maxVal[1], minVal[2]);
+    return max(min(val, maxVal3), minVal3);
+  }
+
+  if (isVec4(val)) {
+    const minVal4 = isScalar(minVal)
+      ? vec4(minVal)
+      : vec4(minVal[0], minVal[1], minVal[2], minVal[3]);
+    const maxVal4 = isScalar(maxVal)
+      ? vec4(maxVal)
+      : vec4(maxVal[0], maxVal[1], minVal[2], minVal[3]);
+    return max(min(val, maxVal4), minVal4);
+  }
+
+  if (isScalar(val) && isScalar(minVal) && isScalar(maxVal)) {
+    return Math.max(Math.min(val, maxVal), minVal);
+  }
+}
+
 export function mix(x: number, y: number, a: number): number;
 export function mix(x: Vec2, y: Vec2, a: number): Vec2;
 export function mix(x: Vec3, y: Vec3, a: number): Vec3;
@@ -572,6 +624,116 @@ export function mix(
 
   if (isScalar(x) && isScalar(y)) {
     return add(multiply(x, 1 - a), multiply(y, a));
+  }
+}
+
+export function smoothStep(
+  edge0: number,
+  edge1: number,
+  x: number,
+  interpolationFn?: InterpolationFn<number>
+): number;
+export function smoothStep(
+  edge0: number,
+  edge1: number,
+  x: Vec2,
+  interpolationFn?: InterpolationFn<number>
+): Vec2;
+export function smoothStep(
+  edge0: number,
+  edge1: number,
+  x: Vec3,
+  interpolationFn?: InterpolationFn<number>
+): Vec3;
+export function smoothStep(
+  edge0: number,
+  edge1: number,
+  x: Vec4,
+  interpolationFn?: InterpolationFn<number>
+): Vec4;
+export function smoothStep(
+  edge0: Vec2,
+  edge1: Vec2,
+  x: number,
+  interpolationFn?: InterpolationFn<number>
+): Vec2;
+export function smoothStep(
+  edge0: Vec3,
+  edge1: Vec3,
+  x: number,
+  interpolationFn?: InterpolationFn<number>
+): Vec3;
+export function smoothStep(
+  edge0: Vec4,
+  edge1: Vec4,
+  x: number,
+  interpolationFn?: InterpolationFn<number>
+): Vec4;
+export function smoothStep(
+  edge0: AnyVec | number,
+  edge1: AnyVec | number,
+  x: AnyVec | number,
+  interpolationFn: InterpolationFn<any> = cubic
+): AnyVec | number {
+  if (isScalar(x)) {
+    if (isVec2(edge0) && isVec2(edge1)) {
+      const t2 = clamp(
+        divide(subtract(x, edge0), subtract(edge1, edge0)),
+        0,
+        1
+      );
+      return interpolationFn(t2);
+    }
+
+    if (isVec3(edge0) && isVec3(edge1)) {
+      const t3 = clamp(
+        divide(subtract(x, edge0), subtract(edge1, edge0)),
+        0,
+        1
+      );
+      return interpolationFn(t3);
+    }
+
+    if (isVec4(edge0) && isVec4(edge1)) {
+      const t4 = clamp(
+        divide(subtract(x, edge0), subtract(edge1, edge0)),
+        0,
+        1
+      );
+      return interpolationFn(t4);
+    }
+
+    if (isScalar(edge0) && isScalar(edge1)) {
+      const t = clamp(divide(subtract(x, edge0), subtract(edge1, edge0)), 0, 1);
+      return interpolationFn(t);
+    }
+  } else {
+    if (isVec2(x) && isScalar(edge0) && isScalar(edge1)) {
+      const t2 = clamp(
+        divide(subtract(x, edge0), subtract(edge1, edge0)),
+        0,
+        1
+      );
+      return interpolationFn(t2);
+    }
+
+    if (isVec3(x) && isScalar(edge0) && isScalar(edge1)) {
+      const t3 = clamp(
+        divide(subtract(x, edge0), subtract(edge1, edge0)),
+        0,
+        1
+      );
+      return interpolationFn(t3);
+    }
+
+    if (isVec4(x) && isScalar(edge0) && isScalar(edge1)) {
+      const t4 = clamp(
+        divide(subtract(x, edge0), subtract(edge1, edge0)),
+        0,
+        1
+      );
+      return interpolationFn(t4);
+    }
   }
 }
 
